@@ -1,0 +1,12 @@
+syntax = "proto3";
+package pb;
+option go_package = "pb";
+
+message Request {
+	string correlation_id = 1;
+	Method method = 2;
+}
+
+message Method {
+	string name = 1;
+}

@@ -1,0 +1,79 @@
+syntax = "proto3";
+package pb;
+option go_package = "pb";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service WorkoutManager {
+	rpc CreateMovement (CreateMovementRequest) returns (CreateMovementResponse) {
+		option (google.api.http) = {
+			post: "/v1/movements/"
+			body: "movement"
+		};
+	}
+
+	rpc GetMovement(GetMovementRequest) returns (GetMovementResponse) {
+		option (google.api.http) = {
+			get: "/v1/{name=movements/*}"
+		};
+	}
+
+	rpc ListMovements(ListMovementsRequest) returns (ListMovementsResponse) {
+		option (google.api.http) = {
+			get: "/v1/movements/"
+		};
+	}
+
+	rpc DeleteMovement(DeleteMovementRequest) returns (DeleteMovementResponse) {
+		option (google.api.http) = {
+			delete: "/v1/movements/}"
+		};
+	}
+}
+
+message Movement {
+	string name = 1;
+	string tenant_id = 2;
+	string movement_name = 3;
+	string movement_category_id = 4;
+	google.protobuf.Timestamp create_at = 5;
+	google.protobuf.Timestamp update_at = 6;
+}
+
+message CreateMovementRequest {
+	string tenant_id = 1;
+	string movement_name = 2;
+	string movement_category_id = 3;
+}
+
+message CreateMovementResponse {
+	Movement data = 1;
+	string err = 2;
+}
+
+message GetMovementRequest {
+	string name = 1;
+}
+
+message GetMovementResponse {
+	Movement data = 1;
+	string err = 2;
+}
+
+message ListMovementsRequest {
+	string category_name = 1;
+}
+
+message ListMovementsResponse {
+	repeated Movement data = 1;
+	string err = 2;
+}
+
+message DeleteMovementRequest {
+	string name = 2;
+}
+
+message DeleteMovementResponse {
+	string err = 1;
+}
