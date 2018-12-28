@@ -154,6 +154,47 @@ func Release() (err error) {
 	return nil
 }
 
+const (
+	protocmd   = "protoc"
+	protoSrc   = "--proto_path=pb/"
+	goSrc      = "--proto_path=${GOPATH}/src"
+	googleAPIs = "--proto_path=${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis"
+	compileOut = "--go_out=plugins=grpc:pb"
+	proxyOut   = "--grpc-gateway_out=logtostderr=true:pb"
+)
+
+// ProtoCompile builds the service's '.proto' files.
+func ProtoCompile() error {
+	err := sh.RunV(
+		protocmd,
+		protoSrc,
+		compileOut,
+		"pb/common.proto",
+		"pb/movementservice.proto",
+	)
+	if err != nil {
+		return fmt.Errorf("error running protoc: %v", err)
+	}
+	return nil
+}
+
+// ProtoProxy generates a reverse proxy that translates a RESTful JSON API
+// into gRPC calls.
+func ProtoProxy() error {
+	err := sh.RunV(
+		protocmd,
+		protoSrc,
+		googleAPIs,
+		proxyOut,
+		"pb/common.proto",
+		"pb/movementservice.proto",
+	)
+	if err != nil {
+		return fmt.Errorf("error running protoc: %v", err)
+	}
+	return nil
+}
+
 func isGoLatest() bool {
 	return strings.Contains(runtime.Version(), goVersion)
 }
