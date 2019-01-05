@@ -33,7 +33,7 @@ func NewMovementSet(svc service.MovementService) MovementSet {
 func MakeCreateMovementEndpoint(svc service.MovementService) endpoint.Endpoint {
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		request := req.(CreateMovementRequest)
-		mvm, err := svc.Create(ctx, request.TenantID, request.MovementName, request.MovementCategoryID)
+		mvm, err := svc.Create(ctx, request.MovementName, request.MovementCategoryID)
 		return CreateMovementResponse{
 			Data: service.Movement{
 				Name:               mvm.Name,
@@ -63,7 +63,8 @@ func MakeGetMovementEndpoint(svc service.MovementService) endpoint.Endpoint {
 	}
 }
 
-// MakeListMovementsEndpoint is a builder function that returns a ListEndpoint.
+// MakeListMovementsEndpoint is a builder function that returns a
+// ListEndpoint.
 func MakeListMovementsEndpoint(svc service.MovementService) endpoint.Endpoint {
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
 		request := req.(ListMovementsRequest)
@@ -85,14 +86,15 @@ func MakeDeleteMovementEndpoint(svc service.MovementService) endpoint.Endpoint {
 	}
 }
 
-// compile-time assertions for our response types implementing endpoint.Failer.
+// compile-time assertions for our response types implementing
+// endpoint.Failer.
 var (
 	_ endpoint.Failer = CreateMovementResponse{}
 	_ endpoint.Failer = GetMovementResponse{}
 )
 
-// CreateMovementRequest collects the request parameters for the CreateMovement
-// Endpoint.
+// CreateMovementRequest collects the request parameters for the
+// CreateMovement Endpoint.
 type CreateMovementRequest struct {
 	TenantID           string `json:"tenantId"`
 	MovementName       string `json:"name"`
@@ -132,7 +134,8 @@ type ListMovementsRequest struct {
 	CategoryName string
 }
 
-// ListMovementsResponse collects the response parameters for the List Endpoint.
+// ListMovementsResponse collects the response parameters for the List
+// Endpoint.
 type ListMovementsResponse struct {
 	Data []service.Movement `json:"data"`
 	Err  error              `json:"-"`

@@ -9,46 +9,62 @@ import (
 	"os/signal"
 	"text/tabwriter"
 
+	kitgrpc "github.com/go-kit/kit/transport/grpc"
+	"google.golang.org/grpc"
+
+	"workout-manager-service/logging"
 	"workout-manager-service/pb"
 	"workout-manager-service/pkg/endpoint"
 	"workout-manager-service/pkg/service"
 	"workout-manager-service/pkg/transport"
-
-	kitlog "github.com/go-kit/kit/log"
-	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"google.golang.org/grpc"
 )
 
-const DefaultGrpcAddr = ":8070"
+const (
+	defaultEnvironment = "local"
+	defaultGrpcAddr    = ":8072"
+)
 
 func main() {
-	var logger kitlog.Logger
-	{
-		logger = kitlog.NewLogfmtLogger(os.Stderr)
-		logger = kitlog.With(logger, "ts", kitlog.DefaultTimestampUTC)
-		logger = kitlog.With(logger, "caller", kitlog.DefaultCaller)
+	fs := flag.NewFlagSet("workout-manager-server", flag.ExitOnError)
+	var (
+		env      = fs.String("env", defaultEnvironment, "The execution environment")
+		grpcAddr = fs.String("grpc-addr", defaultGrpcAddr, "gRPC listen address")
+	)
+	fs.Usage = usageFor(fs, os.Args[0]+" [flags]")
+	if err := fs.Parse(os.Args[1:]); err != nil {
+		log.Panicf("could not parse flags: %+v", err)
 	}
+
+	logger, err := logging.NewZap(*env)
+	if err != nil {
+		log.Panicf("failed to initialize logger: %+v", err)
+	}
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			log.Printf("failed to flush logger buffer: %+v", err)
+		}
+	}()
 
 	var (
 		baseServer       = grpc.NewServer(grpc.UnaryInterceptor(kitgrpc.Interceptor))
-		movementSvc      = service.NewMovementService()
+		movementSvc      = service.NewMovementService(logger)
 		movementEndpoint = endpoint.NewMovementSet(movementSvc)
 		grpcServer       = transport.NewGRPCServer(movementEndpoint)
 	)
 
-	grpcListener, err := net.Listen("tcp", DefaultGrpcAddr)
+	grpcListener, err := net.Listen("tcp", *grpcAddr)
 	if err != nil {
-		log.Panicf("failed to initialize server: %+v", err)
+		log.Panicf("failed to initialize gRPC server: %+v", err)
 	}
 
 	go func() {
 		pb.RegisterWorkoutManagerServer(baseServer, grpcServer)
 		if err := baseServer.Serve(grpcListener); err != nil && err != grpc.ErrServerStopped {
-			log.Panicf("failed to initialize server: %+v", err)
+			log.Panicf("failed to register gRPC server: %+v", err)
 		}
 	}()
 
-	log.Printf("starting server on %s", DefaultGrpcAddr)
+	log.Printf("starting server on %s", *grpcAddr)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+
+	"workout-manager-service/logging"
 )
 
-// Movement represents a discrete movement like a panda pull, squat, or bench-
+// Movement represents a discrete movement like a panda pull, squat, or bench
 // press.
 type Movement struct {
 	Name               string `json:"id"`
@@ -14,19 +16,19 @@ type Movement struct {
 }
 
 // MovementService describes a service that deals with movements.
-// TODO: add tenantId to everything
 type MovementService interface {
-	Create(ctx context.Context, tenantID string, movementName string, categoryID string) (Movement, error)
+	Create(ctx context.Context, movementName string, categoryID string) (Movement, error)
 	Get(ctx context.Context, id string) (Movement, error)
 	List(ctx context.Context, categoryName string) ([]Movement, error)
 	Delete(ctx context.Context, id string) error
 }
 
 // NewMovementService returns a basic Service with middleware wired in.
-func NewMovementService() MovementService {
+func NewMovementService(logger logging.IshiLogger) MovementService {
 	var svc MovementService
 	{
 		svc = NewBasicMovementService()
+		svc = NewMovementLoggingService(logger, svc)
 	}
 	return svc
 }
@@ -39,17 +41,13 @@ func NewBasicMovementService() MovementService {
 
 type basicMovementService struct{}
 
-const (
-	categoryID = "test category ID"
-)
-
 // Create adds a new Movement to the database.
-func (s basicMovementService) Create(ctx context.Context, tenantID string, movementName string, categoryID string) (Movement, error) {
+func (s basicMovementService) Create(ctx context.Context, movementName string, categoryID string) (Movement, error) {
 	return Movement{
 		Name:               "new ID",
-		TenantID:           tenantID,
+		TenantID:           "test tenant ID",
 		MovementName:       movementName,
-		MovementCategoryID: categoryID,
+		MovementCategoryID: "test category ID",
 	}, nil
 }
 
@@ -59,7 +57,7 @@ func (s basicMovementService) Get(ctx context.Context, id string) (Movement, err
 		Name:               id,
 		TenantID:           "test tenant ID",
 		MovementName:       "Get",
-		MovementCategoryID: categoryID,
+		MovementCategoryID: "test category ID",
 	}, nil
 }
 
@@ -72,13 +70,13 @@ func (s basicMovementService) List(ctx context.Context, categoryName string) ([]
 			Name:               "1",
 			TenantID:           "test tenant ID",
 			MovementName:       "List",
-			MovementCategoryID: categoryID,
+			MovementCategoryID: "test category ID",
 		},
 		{
 			Name:               "2",
 			TenantID:           "test tenant ID",
 			MovementName:       "List",
-			MovementCategoryID: categoryID,
+			MovementCategoryID: "test category ID",
 		},
 	}, nil
 }
