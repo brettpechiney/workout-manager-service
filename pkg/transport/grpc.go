@@ -103,8 +103,8 @@ func encodeGetMovementResponse(_ context.Context, res interface{}) (interface{},
 	}, nil
 }
 
-// ListMovements handles incoming gRPC requests to retrieve existing movements,
-// optionally filtering by category.
+// ListMovements handles incoming gRPC requests to retrieve existing
+// movements, optionally filtering by category.
 func (s *grpcServer) ListMovements(ctx context.Context, req *pb.ListMovementsRequest) (*pb.ListMovementsResponse, error) {
 	_, res, err := s.listMovements.ServeGRPC(ctx, req)
 	if err != nil {
@@ -132,8 +132,8 @@ func encodeListMovementsResponse(_ context.Context, res interface{}) (interface{
 	}, nil
 }
 
-// DeleteMovement handles incoming gRPC requests to delete an existing movement
-// by its UUID.
+// DeleteMovement handles incoming gRPC requests to delete an existing
+// movement by its UUID.
 func (s *grpcServer) DeleteMovement(ctx context.Context, req *pb.DeleteMovementRequest) (*pb.DeleteMovementResponse, error) {
 	_, res, err := s.deleteMovement.ServeGRPC(ctx, req)
 	if err != nil {
